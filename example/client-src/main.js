@@ -11,6 +11,10 @@ export function doCountAddition() {
     const b = Number(document.getElementById('ex1_b').value);
 
     neapi.request('algebra','addition',{a,b}).then((responce)=>{
-        console.log(responce);
+        if(responce.error){
+            alert("We have an error!");
+        }else{
+            alert("The sum is equal "+responce.payload);
+        }
     })
 }
