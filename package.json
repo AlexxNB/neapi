@@ -1,8 +1,8 @@
 {
   "name": "neapi",
   "version": "1.0.0",
-  "description": "Simple JSON client-server API",
-  "main": "index.js",
+  "description": "Very simple JSON-based request-responce API",
+  "main": "server/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -25,5 +25,8 @@
   "devDependencies": {},
   "dependencies": {
     "body-parser": "^1.19.0"
+  },
+  "directories": {
+    "example": "example"
   }
 }

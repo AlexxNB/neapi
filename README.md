@@ -65,12 +65,45 @@ else
 
 ## Lifecycle Hooks
 
-TODO
+NeAPI is request-responce type API. Other words, client sends request with some parameters to API-server and wait for responce. There are 4 lifecycle hooks on this way:
+* `onRequest` - client, call right before data will send to the server
+* `onRecieve` - server, call when data coming to the server, but before any method will fired
+* `onSend` - server, call right after method's work before data will be sent to the client
+* `onResponce` - client, call when data from client recieved
+
+All hooks functions have two parameters:
+* packet - raw object with data transmited in request-responce chain
+* context - tool to manage the context of the chain
 
 ## Context Usage
 
-TODO
+Context is additional storage for any data that will be accesible during whole request-responce chain. You can set some context's data on request initialization, add some data in every hooks, and get whole context's data in responce on the client.
 
-## Refernce
+Usualy context may be used for users authentication.
 
-TODO
+Let's look the stages where context may be accesible:
+
+**Client:**
+
+1. `client.request(namespace,method,params,context)` - it is first initialization of the `context`. It can be any object like `{token: "1a2b3c4e5f6d7e"}`. It is not necessary to initialize the context on the request, just ommit context parameter in the function.
+
+2. `onRequest(packet,context)` - there and all next stages `context` is special _context function_, that allows to get context values at current stage or set any additional data.
+
+**Server:**
+
+3. `onRecieve(packet,context)`
+
+4. `method(resp, err, params, context)` - context is accesible in every called method
+
+5. `onSend(packet,context)`
+
+**Client:**
+
+6. `onResponce(packet,context)`
+
+
+_Context function_ on 2-6 stages can be used on these ways:
+* `context()` - return whole context object
+* `context(name)` - return value of the context's property with defined name
+* `context({...})` - merge new object with context object
+* `context(name,value)` - add or modify context's property with specified name and set the value
