@@ -1,66 +1,39 @@
-const endpoint = function (endpoint) {
-    check_globals();
-    if(endpoint === undefined) return window.neapi.endpoint;
-    window.neapi.endpoint = endpoint;
-}
 
-const context = function (ctx) {
-    check_globals();
-    if(ctx === undefined) return window.neapi.context;
-    window.neapi.context = ctx;
-}
+const client = function (user_config) {
 
-const onRequest = function (callback) {
-    check_globals();
-    if(callback === undefined) return window.neapi.onRequest;
-    window.neapi.onRequest = callback;
-}
-
-const onResponce = function (callback) {
-    check_globals();
-    if(callback === undefined) return window.neapi.onResponce;
-    window.neapi.onResponce = callback;
-}
-
-const init = function (params) {
-    if(params.endpoint !== undefined) endpoint(params.endpoint);
-    if(params.context !== undefined) context(params.context);
-    if(params.onRequest !== undefined) onRequest(params.onRequest);
-    if(params.onResponce !== undefined) onResponce(params.onResponce);
-}
-
-const check_globals = function() {
-    if(!window) throw new Error('[NeAPI] Client can work only in browser');
-    if(!window.neapi) window.neapi = {
-        endpoint:'/api',
-        onResponce: ()=>{},
-        onRequest: ()=>{},
-        context:{}
-    }
-}
-
-const responceValidator = function (responce) {
-    if(!responce.namespace) return false;
-    if(!responce.method) return false;
-    if(responce.error === undefined) return false;
-    if(responce.payload === undefined) return false;
-    if(responce.context === undefined) return false;
-    return true;
-}
-
-const request = async (namespace,method,params) => {
-
-    let packet = {
-        namespace,
-        method,
-        params,
-        context:context()
+    const default_config = {
+        endpoint: '/api',
+        onRequest: async () => {},
+        onResponce: async () => {}
     }
 
-    const onRequestHook = onRequest();
-    onRequestHook(packet);
+    const config = Object.assign({}, default_config, user_config);
+
+    return {
+        request:request(config),
+    }
+
+}
+
+
+const request = (config) => async (namespace,method,params,context_obj) => {
     
-    let raw_responce = await fetch(endpoint(),{ 
+    const context = object_manager(context_obj || {});
+    const packet = getPacket();
+    
+    packet.namespace = namespace;
+    packet.method = method || 'unknown';
+    packet.params = params || {};
+
+    await config.onRequest({
+        namespace:packet.namespace,
+        method:packet.method,
+        params:packet.params
+    },context);
+
+    packet.context = context();
+
+    let raw_responce = await fetch(config.endpoint,{ 
         method: 'POST',
         headers: {  
             "Content-type": "application/json; charset=UTF-8"
@@ -73,19 +46,54 @@ const request = async (namespace,method,params) => {
 
     let responce = await raw_responce.json();
 
-    if(!responceValidator(responce)) throw new Error('[NeAPI] Invalid responce packet');
-
-    const onResponceHook = onResponce();
-    onResponceHook(responce);
+    if(!responce_validator(responce)) throw new Error('[NeAPI] Invalid responce packet');
     
+    let rcv_context = object_manager(responce.context);
+
+    await config.onResponce({
+        namespace:responce.namespace,
+        method:responce.method,
+        payload:responce.payload,
+        error:responce.error,
+    },rcv_context);
+
     return {
         error:  responce.error,
-        payload:responce.payload
+        payload:responce.payload,
+        context:rcv_context
     };
 }
 
+
+const object_manager = (obj) => (propname,value) => {
+    if(propname === undefined && value === undefined)
+        return obj;
+    else if (typeof propname === 'object') 
+        obj = Object.assign(obj, propname);
+    else if(value === undefined)
+        return obj[propname];
+    else
+        obj[propname] = value;
+}
+
+const getPacket = function () {
+    return {
+        namespace:'',
+        method:'',
+        params:{},
+        context:{}
+    }
+}
+
+const responce_validator = function (responce) {
+    if(!responce.namespace) return false;
+    if(!responce.method) return false;
+    if(responce.error === undefined) return false;
+    if(responce.payload === undefined) return false;
+    if(responce.context === undefined) return false;
+    return true;
+}
+
 export default {
-    init,
-    context,
-    request
+    client
 }

@@ -11,15 +11,32 @@
     <fieldset>
         <legend><b>Example 1:</b> call the method</legend>
         <form>
-            <input type="number" id="ex1_a" value="0" size="2"/>
+            <input type="number" id="ex1_a" value="0"/>
             +
-            <input type="number" id="ex1_b" value="0" size="2"/>
+            <input type="number" id="ex1_b" value="0"/>
             = ?
         </form>
         <div>
             <button onclick="example.doCountAddition()">Count</button>
         </div>
     </fieldset>
+
+    <fieldset>
+      <legend><b>Example 2:</b> using context</legend>
+      <div><button onclick="example.doTryme()">Try me</button></div>
+      <div><hr/></div>
+      <div id="ex2_login_form">
+        <div>Login: <input type="text" id="ex2_login" value="admin" size="2"/> </div>
+        <div>Password: <input type="password" id="ex2_password" value="secret" size="2"/></div>
+        <div><button onclick="example.doLogin()">Login</button></div>
+      </div>
+      <div><hr/></div>
+      <div>
+        1. Press the "Try me" button <br/>
+        2. Press the "Login" button <br/>
+        3. Press the "Try me" button again 
+      </div>
+  </fieldset>
 
     <script defer src="bundle.js" type="text/javascript"></script>
   </body>
