@@ -20,14 +20,15 @@ polka()
   });
 ```
 
+### API Scheme
 Then we should create scheme of the API methods. Methods are groups by namespaces. 
 
 ```js
 // api/scheme.js
 module.exports = {
-    // algebra - is a namespace for group of methods
+    // algebra -  a namespace for group of methods
     algebra: {
-        // there are a list of the methods
+        // a list of the methods
         addition: (resp, err, params, context) => {
             if(params.a > 100 ) return err('Too big param');
             return resp( params.a + params.b )
@@ -42,6 +43,17 @@ module.exports = {
     ...   
 }
 ```
+
+### Methods
+
+Method is a function that accepts 4 parameters:
+
+* `resp(payload)` - a function, that sends any data (or `payload`) to the client
+* `err(error,payload)` - a function, that sends error to the client: `error` - code or text of the error, `payload` - any additional data.
+* `params` - object of data recieved from client.
+* `context` - special object for context managing (see below) 
+
+Every method must return  either `resp()` or `err()` call.
 
 ## Client Usage
 
@@ -63,6 +75,19 @@ else
     alert("The sum is equal " + responce.payload);
 ```
 
+### Request
+
+The `client.request(namespace,method,params,context)` is a *async* function that accept 4 parameters and returns responce object:
+* `namespace` - defines the namespace of the method
+* `method` - the method, we calling on the API-server 
+* `params` - object with any neccesary data 
+* `context` - simple object, any data you wanna put to the context (see below)
+
+### Responce object
+Responce object is method's return value. It is simple object with two properties:
+* `error` - null if no error, text or code if error was sent by method
+* `payload` - any data sent from method.
+
 ## Lifecycle Hooks
 
 NeAPI is request-responce type API. Other words, client sends request with some parameters to API-server and wait for responce. There are 4 lifecycle hooks on this way:
@@ -72,8 +97,33 @@ NeAPI is request-responce type API. Other words, client sends request with some 
 * `onResponce` - client, call when data from client recieved
 
 All hooks functions have two parameters:
-* packet - raw object with data transmited in request-responce chain
-* context - tool to manage the context of the chain
+* `packet` - raw object with data transmited in request-responce chain
+* `context` - special object for context managing (see below) 
+
+On client, `onRequest` and `onResponce` hooks can be defined in config during client object initialization:
+
+```js
+// Client
+import neapi from 'neapi/client';
+
+const api = neapi.client({
+    endpoint: '/api',
+    onRequest: (packet,context) => console.log('Request:', packet),
+    onResponce: (packet,context) => console.log('Responce:', packet),
+});
+```
+
+On server, `onRecieve` and `onSend` should be defined in middleware's initialization config:
+
+```js
+const neapi = require('neapi/server');
+
+const neapi_middleware = neapi.getMiddleware({
+  scheme:api_scheme,
+  onRecieve: (packet,context) => console.log('Recieve:', packet),
+  onSend: (packet,context) => console.log('Send:', packet)
+});
+```
 
 ## Context Usage
 
