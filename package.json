@@ -1,6 +1,6 @@
 {
   "name": "neapi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Very simple JSON-based request-responce API",
   "main": "server/index.js",
   "scripts": {
