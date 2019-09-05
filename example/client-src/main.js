@@ -4,11 +4,11 @@ const api = neapi.client({
     endpoint: '/api',
     onRequest: (packet,context) => {
         console.log('NeAPI Request:', packet);
-        console.log('NeAPI Request Context:', context());
+        console.log('NeAPI Request Context:', context.get());
     },
     onResponce: (packet,context) => {
         console.log('NeAPI Responce:', packet);
-        console.log('NeAPI Responce Context:', context());
+        console.log('NeAPI Responce Context:', context.get());
     }
 })
 

@@ -1,3 +1,6 @@
+import utils from './../share/utils'
+
+const object_manager = utils.object_manager;
 
 const client = function (user_config) {
 
@@ -16,9 +19,11 @@ const client = function (user_config) {
 }
 
 
-const request = (config) => async (namespace,method,params,context_obj) => {
+const request = (config) => async (namespace,method,params,context_cb) => {
     
-    const context = object_manager(context_obj || {});
+    const context = object_manager({});
+    if(typeof context_cb === 'function') context_cb(context);
+
     const packet = getPacket();
     
     packet.namespace = namespace;
@@ -31,7 +36,7 @@ const request = (config) => async (namespace,method,params,context_obj) => {
         params:packet.params
     },context);
 
-    packet.context = context();
+    packet.context = context.get();
 
     let raw_responce = await fetch(config.endpoint,{ 
         method: 'POST',
@@ -62,18 +67,6 @@ const request = (config) => async (namespace,method,params,context_obj) => {
         payload:responce.payload,
         context:rcv_context
     };
-}
-
-
-const object_manager = (obj) => (propname,value) => {
-    if(propname === undefined && value === undefined)
-        return obj;
-    else if (typeof propname === 'object') 
-        obj = Object.assign(obj, propname);
-    else if(value === undefined)
-        return obj[propname];
-    else
-        obj[propname] = value;
 }
 
 const getPacket = function () {

@@ -1,4 +1,7 @@
 const {json} = require('body-parser');
+const utils = require('./../share/utils');
+
+const object_manager = utils.object_manager;
 
 const packet_validator = function (packet) {
     if(!packet.namespace) return false;
@@ -72,7 +75,7 @@ const sendResponce = async (resp,next,req_packet,payload,context,config) => {
         error:packet.error,
     },context);
 
-    packet.context = context();
+    packet.context = context.get();
 
     sendPacket(resp,next,packet);
 }
@@ -92,7 +95,7 @@ const sendError = async (resp,next,req_packet,err,payload,context,config) => {
         error:packet.error,
     },context);
 
-    packet.context = context();
+    packet.context = context.get();
 
     sendPacket(resp,next,packet);
 }
@@ -101,15 +104,4 @@ const sendPacket = (resp,next,packet) => {
     resp.writeHead(200, {'Content-Type': 'application/json; charset=UTF-8'});
     resp.end(JSON.stringify(packet));
     next();
-}
-
-const object_manager = (obj) => (propname,value) => {
-    if(propname === undefined && value === undefined)
-        return obj;
-    else if (typeof propname === 'object') 
-        obj = Object.assign(obj, propname);
-    else if(value === undefined)
-        return obj[propname];
-    else
-        obj[propname] = value;
 }

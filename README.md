@@ -127,17 +127,17 @@ const neapi_middleware = neapi.getMiddleware({
 
 ## Context Usage
 
-Context is additional storage for any data that will be accesible during whole request-responce chain. You can set some context's data on request initialization, add some data in every hooks, and get whole context's data in responce on the client.
+Context is additional storage for any data that will be accesible during **whole** request-responce chain. You can set some context's data on request initialization, add some data in every hooks, and get whole context's data in responce on the client. 
 
-Usualy context may be used for users authentication.
+Usualy context may be used for users authentication. You may need to clear context in a middle of the chain to prevent sending useless data from server to client.
 
 Let's look the stages where context may be accesible:
 
 **Client:**
 
-1. `client.request(namespace,method,params,context)` - it is first initialization of the `context`. It can be any object like `{token: "1a2b3c4e5f6d7e"}`. It is not necessary to initialize the context on the request, just ommit context parameter in the function.
+1. `client.request(namespace,method,params,context_func)` -  there `context_func`  is a function with single parameter which is a _context object_. You can set any initial context values on request this way: `client.request( ........, context=>context.set('test',123) )`. It is not required.
 
-2. `onRequest(packet,context)` - there and all next stages `context` is special _context function_, that allows to get context values at current stage or set any additional data.
+2. `onRequest(packet,context)` - there and all next stages `context` is special _context object_, that allows to get context values at current stage or set any additional data.
 
 **Server:**
 
@@ -152,8 +152,12 @@ Let's look the stages where context may be accesible:
 6. `onResponce(packet,context)`
 
 
-_Context function_ on 2-6 stages can be used on these ways:
-* `context()` - return whole context object
-* `context(name)` - return value of the context's property with defined name
-* `context({...})` - merge new object with context object
-* `context(name,value)` - add or modify context's property with specified name and set the value
+### Context object
+
+_Context object_ can be used on these ways:
+* `context.get()` - return whole context object
+* `context.get(name)` - return value of the context's property with defined name
+* `context.merge({...})` - merge new object with context object
+* `context.set(name,value)` - add or modify context's property with specified name and set the value
+* `context.clear()` - remove all context data
+* `context.clear(name)` - remove property with specified name from context
