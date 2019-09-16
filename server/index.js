@@ -24,12 +24,19 @@ module.exports.getMiddleware = function(user_config) {
     return [json(),async function(req,resp,next){
         const packet = req.body;
     
-        if(!packet_validator(packet)) return sendError(resp,next,packet,'invalid_packet',config);
+        if(!packet_validator(packet)) {
+            return sendError(resp,next,packet,'invalid_packet',undefined,{},config);
+        }
         
         const context = object_manager(packet.context);
+                                                                                                     
+        if(config.scheme[packet.namespace] === undefined) {
+            return sendError(resp,next,packet,'unknown_namespace',undefined,context,config);
+        }   
 
-        if(config.scheme[packet.namespace] === undefined) return sendError(resp,next,packet,'unknown_namespace',context,config);
-        if(config.scheme[packet.namespace][packet.method] === undefined) return sendError(resp,next,packet,'unknown_method',context,config);
+        if(config.scheme[packet.namespace][packet.method] === undefined) {
+            return sendError(resp,next,packet,'unknown_method',undefined,context,config);
+        }
 
         await config.onRecieve({
             namespace:packet.namespace,
